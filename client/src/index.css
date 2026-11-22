@@ -292,6 +292,64 @@ a:hover {
   box-shadow: var(--shadow-md);
 }
 
+.examinee-login-card {
+  max-width: 490px;
+}
+
+.auth-badge-icon {
+  font-size: 2.4rem;
+  margin-bottom: 8px;
+}
+
+.req-star {
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.field-icon {
+  position: absolute;
+  left: 12px;
+  font-size: 1rem;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.form-control.with-icon {
+  padding-left: 38px;
+}
+
+.label-row-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.toggle-password-btn {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+.toggle-password-btn:hover {
+  text-decoration: underline;
+}
+
+.btn-exam-login {
+  padding: 12px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
 .auth-header {
   text-align: center;
   margin-bottom: 24px;

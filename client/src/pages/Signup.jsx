@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 const Signup = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
@@ -41,6 +42,14 @@ const Signup = () => {
       return;
     }
 
+    if (phone.trim()) {
+      const cleanDigits = phone.replace(/\D/g, '');
+      if (cleanDigits.length < 7 || cleanDigits.length > 15) {
+        setErrorMessage('Please enter a valid phone number (at least 7 to 10 digits).');
+        return;
+      }
+    }
+
     if (!password) {
       setErrorMessage('Password is required.');
       return;
@@ -58,7 +67,7 @@ const Signup = () => {
 
     try {
       setSubmitting(true);
-      await signup(name.trim(), email.trim(), password);
+      await signup(name.trim(), email.trim(), password, phone.trim());
       navigate('/test', { replace: true });
     } catch (err) {
       let msg = 'Registration failed. Please check your information and try again.';
@@ -77,8 +86,9 @@ const Signup = () => {
     <div className="auth-page">
       <div className="auth-card">
         <div className="auth-header">
-          <h2>Create an Account</h2>
-          <p>Join Mini Online Test App to take tests and track your progress.</p>
+          <div className="auth-badge-icon">📝</div>
+          <h2>Create Examinee Account</h2>
+          <p>Register with your details to access tests and track your score history.</p>
         </div>
 
         {errorMessage && (
@@ -90,70 +100,99 @@ const Signup = () => {
 
         <form onSubmit={handleSubmit} className="auth-form" noValidate>
           <div className="form-group">
-            <label htmlFor="name">Full Name</label>
-            <input
-              id="name"
-              type="text"
-              className="form-control"
-              placeholder="John Doe"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              disabled={submitting}
-            />
+            <label htmlFor="name">Full Name *</label>
+            <div className="input-with-icon">
+              <span className="field-icon">👤</span>
+              <input
+                id="name"
+                type="text"
+                className="form-control with-icon"
+                placeholder="e.g. John Doe"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                disabled={submitting}
+              />
+            </div>
           </div>
 
           <div className="form-group">
-            <label htmlFor="email">Email Address</label>
-            <input
-              id="email"
-              type="email"
-              className="form-control"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
-              disabled={submitting}
-            />
+            <label htmlFor="email">Email Address *</label>
+            <div className="input-with-icon">
+              <span className="field-icon">✉️</span>
+              <input
+                id="email"
+                type="email"
+                className="form-control with-icon"
+                placeholder="e.g. student@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+                disabled={submitting}
+              />
+            </div>
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Password (min. 6 characters)</label>
-            <input
-              id="password"
-              type="password"
-              className="form-control"
-              placeholder="Create a strong password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              autoComplete="new-password"
-              disabled={submitting}
-            />
+            <label htmlFor="phone">Phone Number</label>
+            <div className="input-with-icon">
+              <span className="field-icon">📱</span>
+              <input
+                id="phone"
+                type="tel"
+                className="form-control with-icon"
+                placeholder="e.g. 9876543210"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                autoComplete="tel"
+                disabled={submitting}
+              />
+            </div>
           </div>
 
           <div className="form-group">
-            <label htmlFor="confirmPassword">Confirm Password</label>
-            <input
-              id="confirmPassword"
-              type="password"
-              className="form-control"
-              placeholder="Repeat your password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              autoComplete="new-password"
-              disabled={submitting}
-            />
+            <label htmlFor="password">Password (min. 6 characters) *</label>
+            <div className="input-with-icon">
+              <span className="field-icon">🔒</span>
+              <input
+                id="password"
+                type="password"
+                className="form-control with-icon"
+                placeholder="Create a strong password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete="new-password"
+                disabled={submitting}
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="confirmPassword">Confirm Password *</label>
+            <div className="input-with-icon">
+              <span className="field-icon">🔒</span>
+              <input
+                id="confirmPassword"
+                type="password"
+                className="form-control with-icon"
+                placeholder="Repeat your password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                autoComplete="new-password"
+                disabled={submitting}
+              />
+            </div>
           </div>
 
           <button
             type="submit"
-            className="btn btn-primary btn-block"
+            className="btn btn-primary btn-block btn-exam-login"
             disabled={submitting}
           >
-            {submitting ? 'Creating account...' : 'Create Account'}
+            {submitting ? 'Registering Account...' : 'Complete Registration →'}
           </button>
         </form>
 

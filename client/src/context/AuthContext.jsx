@@ -39,8 +39,15 @@ export const AuthProvider = ({ children }) => {
     verifyUser();
   }, []);
 
-  const login = async (email, password) => {
-    const res = await api.post('/api/auth/login', { email, password });
+  const login = async (credentialsOrEmail, maybePassword) => {
+    let payload;
+    if (typeof credentialsOrEmail === 'object' && credentialsOrEmail !== null) {
+      payload = credentialsOrEmail;
+    } else {
+      payload = { email: credentialsOrEmail, password: maybePassword };
+    }
+
+    const res = await api.post('/api/auth/login', payload);
     const { token: receivedToken, user: receivedUser } = res.data;
 
     setToken(receivedToken);
@@ -52,8 +59,8 @@ export const AuthProvider = ({ children }) => {
     return res.data;
   };
 
-  const signup = async (name, email, password) => {
-    const res = await api.post('/api/auth/signup', { name, email, password });
+  const signup = async (name, email, password, phone = '') => {
+    const res = await api.post('/api/auth/signup', { name, email, password, phone });
     const { token: receivedToken, user: receivedUser } = res.data;
 
     setToken(receivedToken);

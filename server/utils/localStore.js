@@ -141,6 +141,7 @@ const loadDB = () => {
         _id: '64a000000000000000000100',
         name: 'Demo Student',
         email: 'test@example.com',
+        phone: '9876543210',
         password: hashedPassword,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -180,12 +181,13 @@ const localDB = {
     return safeUser;
   },
 
-  createUser: ({ name, email, password }) => {
+  createUser: ({ name, email, phone = '', password }) => {
     const db = loadDB();
     const newUser = {
       _id: generateId(),
       name,
       email: email.toLowerCase(),
+      phone: phone.trim(),
       password,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
@@ -193,6 +195,17 @@ const localDB = {
     db.users.push(newUser);
     saveDB(db);
     return newUser;
+  },
+
+  updateUser: (id, updates) => {
+    const db = loadDB();
+    const idx = db.users.findIndex((u) => u._id === id);
+    if (idx !== -1) {
+      db.users[idx] = { ...db.users[idx], ...updates, updatedAt: new Date().toISOString() };
+      saveDB(db);
+      return db.users[idx];
+    }
+    return null;
   },
 
   // Questions

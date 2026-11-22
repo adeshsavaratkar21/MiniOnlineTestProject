@@ -16,14 +16,14 @@ const isMongooseReady = () => mongoose.connection.readyState === 1;
 // @route   POST /api/auth/signup
 router.post('/signup', async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, phone, password } = req.body;
 
     if (!name || !name.trim()) {
-      return res.status(400).json({ message: 'Name is required.' });
+      return res.status(400).json({ message: 'Full name is required.' });
     }
 
     if (!email || !email.trim()) {
-      return res.status(400).json({ message: 'Email is required.' });
+      return res.status(400).json({ message: 'Email address is required.' });
     }
 
     const cleanEmail = email.trim().toLowerCase();
@@ -35,6 +35,8 @@ router.post('/signup', async (req, res) => {
     if (!password || password.length < 6) {
       return res.status(400).json({ message: 'Password must be at least 6 characters long.' });
     }
+
+    const cleanPhone = phone ? phone.trim() : '';
 
     // Check duplicate
     let existingUser;
@@ -56,24 +58,28 @@ router.post('/signup', async (req, res) => {
       const newUser = new User({
         name: name.trim(),
         email: cleanEmail,
+        phone: cleanPhone,
         password: hashedPassword
       });
       await newUser.save();
       createdUser = {
         id: newUser._id.toString(),
         name: newUser.name,
-        email: newUser.email
+        email: newUser.email,
+        phone: newUser.phone
       };
     } else {
       const newUser = localDB.createUser({
         name: name.trim(),
         email: cleanEmail,
+        phone: cleanPhone,
         password: hashedPassword
       });
       createdUser = {
         id: newUser._id.toString(),
         name: newUser.name,
-        email: newUser.email
+        email: newUser.email,
+        phone: newUser.phone
       };
     }
 
@@ -96,15 +102,27 @@ router.post('/signup', async (req, res) => {
 });
 
 // @route   POST /api/auth/login
+// @desc    Authenticate with email and password, or auto-register examinee with name, email, phone & password
+// @access  Public
 router.post('/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { name, email, phone, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ message: 'Please provide both email and password.' });
+    if (!email || !email.trim()) {
+      return res.status(400).json({ message: 'Email address is required.' });
+    }
+
+    if (!password) {
+      return res.status(400).json({ message: 'Password is required.' });
     }
 
     const cleanEmail = email.trim().toLowerCase();
+    const cleanName = name ? name.trim() : '';
+    const cleanPhone = phone ? phone.trim() : '';
+
+    if (!isValidEmail(cleanEmail)) {
+      return res.status(400).json({ message: 'Please enter a valid email address.' });
+    }
 
     let user;
     if (isMongooseReady()) {
@@ -113,13 +131,69 @@ router.post('/login', async (req, res) => {
       user = localDB.findUserByEmail(cleanEmail);
     }
 
+    // If user does not exist yet and name is provided, auto-create student account
     if (!user) {
-      return res.status(400).json({ message: 'Invalid email or password.' });
-    }
+      if (!cleanName) {
+        return res.status(400).json({
+          message: 'No account found with this email. Please enter your Full Name, Email, Phone Number, and Password to sign in.'
+        });
+      }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid email or password.' });
+      if (password.length < 6) {
+        return res.status(400).json({ message: 'Password must be at least 6 characters long.' });
+      }
+
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+      if (isMongooseReady()) {
+        const newUser = new User({
+          name: cleanName,
+          email: cleanEmail,
+          phone: cleanPhone,
+          password: hashedPassword
+        });
+        await newUser.save();
+        user = newUser;
+      } else {
+        user = localDB.createUser({
+          name: cleanName,
+          email: cleanEmail,
+          phone: cleanPhone,
+          password: hashedPassword
+        });
+      }
+    } else {
+      // User exists, verify password
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        return res.status(400).json({ message: 'Invalid password. Please check your credentials.' });
+      }
+
+      // Update name and phone if provided and changed
+      if (cleanName || cleanPhone) {
+        if (isMongooseReady()) {
+          let hasChanges = false;
+          if (cleanName && user.name !== cleanName) {
+            user.name = cleanName;
+            hasChanges = true;
+          }
+          if (cleanPhone && user.phone !== cleanPhone) {
+            user.phone = cleanPhone;
+            hasChanges = true;
+          }
+          if (hasChanges) {
+            await user.save();
+          }
+        } else {
+          localDB.updateUser(user._id, {
+            name: cleanName || user.name,
+            phone: cleanPhone || user.phone
+          });
+          user.name = cleanName || user.name;
+          user.phone = cleanPhone || user.phone;
+        }
+      }
     }
 
     const userIdStr = (user._id || user.id).toString();
@@ -136,7 +210,8 @@ router.post('/login', async (req, res) => {
       user: {
         id: userIdStr,
         name: user.name,
-        email: user.email
+        email: user.email,
+        phone: user.phone || ''
       }
     });
   } catch (error) {
@@ -163,7 +238,8 @@ router.get('/me', authMiddleware, async (req, res) => {
       user: {
         id: (user._id || user.id).toString(),
         name: user.name,
-        email: user.email
+        email: user.email,
+        phone: user.phone || ''
       }
     });
   } catch (error) {
