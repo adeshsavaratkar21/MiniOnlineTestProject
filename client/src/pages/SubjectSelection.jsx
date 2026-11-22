@@ -107,40 +107,6 @@ const SubjectSelection = () => {
         </div>
       </div>
 
-      {/* Instructions Alert Card */}
-      <div className="exam-instructions-card">
-        <div className="instructions-header">
-          <span className="inst-icon">📋</span>
-          <h4>Important Examination Rules & Guidelines</h4>
-        </div>
-        <div className="instructions-grid">
-          <div className="inst-point">
-            <span className="point-icon">⏱️</span>
-            <div>
-              <strong>10-Minute Timed Test:</strong> The countdown timer runs on the side and cannot be paused.
-            </div>
-          </div>
-          <div className="inst-point">
-            <span className="point-icon">⚡</span>
-            <div>
-              <strong>Auto-Submission:</strong> When the 10-minute timer hits 00:00, your test will automatically submit immediately.
-            </div>
-          </div>
-          <div className="inst-point">
-            <span className="point-icon">🎯</span>
-            <div>
-              <strong>10 Questions / 10 Marks:</strong> Each question carries 1 mark. Unanswered questions receive 0 marks.
-            </div>
-          </div>
-          <div className="inst-point">
-            <span className="point-icon">🎨</span>
-            <div>
-              <strong>Color Palette:</strong> Green = Answered, Red = Skipped, Gray = Not Attempted, Blue = Current.
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Subject Cards Section */}
       <div className="subjects-section-heading">
         <h2>Select Examination Subject</h2>
