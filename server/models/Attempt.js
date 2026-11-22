@@ -7,6 +7,11 @@ const attemptSchema = new mongoose.Schema(
       ref: 'User',
       required: [true, 'User ID is required']
     },
+    subject: {
+      type: String,
+      trim: true,
+      default: 'General'
+    },
     answers: [
       {
         questionId: {

@@ -34,6 +34,7 @@ const History = () => {
       state: {
         result: {
           attemptId: attempt._id,
+          subject: attempt.subject || 'General',
           score: attempt.score,
           total: attempt.total,
           percentage:
@@ -78,7 +79,7 @@ const History = () => {
             Review your past exam submissions, scores, and answer keys.
           </p>
         </div>
-        <Link to="/test" className="btn btn-primary">
+        <Link to="/subjects" className="btn btn-primary">
           Take New Test
         </Link>
       </div>
@@ -90,7 +91,7 @@ const History = () => {
           <p>
             You haven't completed any tests yet. Take your first test now to test your knowledge!
           </p>
-          <Link to="/test" className="btn btn-primary">
+          <Link to="/subjects" className="btn btn-primary">
             Start Your First Test
           </Link>
         </div>
@@ -100,6 +101,7 @@ const History = () => {
             <thead>
               <tr>
                 <th>#</th>
+                <th>Subject</th>
                 <th>Date & Time</th>
                 <th>Score</th>
                 <th>Percentage</th>
@@ -124,6 +126,9 @@ const History = () => {
                 return (
                   <tr key={attempt._id}>
                     <td>{attempts.length - index}</td>
+                    <td>
+                      <span className="subject-tag">{attempt.subject || 'General'}</span>
+                    </td>
                     <td>{formattedDate}</td>
                     <td>
                       <strong>{attempt.score}</strong> / {attempt.total}

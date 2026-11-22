@@ -96,7 +96,7 @@ const Result = () => {
     );
   }
 
-  const { score, total, details, date } = resultData;
+  const { score, total, details, date, subject } = resultData;
   const percentage = total > 0 ? Math.round((score / total) * 100) : 0;
   const isPassed = percentage >= 60;
   const formattedDate = date ? new Date(date).toLocaleString() : 'Just now';
@@ -113,8 +113,8 @@ const Result = () => {
       {/* Score Overview Card */}
       <div className="score-summary-card">
         <div className="score-summary-left">
-          <span className="summary-date">Completed on {formattedDate}</span>
-          <h2 className="summary-heading">Test Evaluation Summary</h2>
+          <span className="summary-date">Completed on {formattedDate} {subject ? `• ${subject}` : ''}</span>
+          <h2 className="summary-heading">{subject ? `${subject} - Evaluation Summary` : 'Test Evaluation Summary'}</h2>
           <p className="summary-subtext">
             {isPassed
               ? 'Great job! You demonstrated strong comprehension of the subject material.'

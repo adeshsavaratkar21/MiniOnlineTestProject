@@ -487,11 +487,6 @@ const localDB = {
       );
     }
 
-    // Fall back to all questions if none found for subject
-    if (pool.length === 0) {
-      pool = db.questions;
-    }
-
     const shuffled = [...pool].sort(() => 0.5 - Math.random());
     const selected = shuffled.slice(0, Math.min(limit, shuffled.length));
 
@@ -536,11 +531,12 @@ const localDB = {
   },
 
   // Attempts
-  createAttempt: ({ userId, answers, score, total, details }) => {
+  createAttempt: ({ userId, subject = 'General', answers, score, total, details }) => {
     const db = loadDB();
     const newAttempt = {
       _id: generateId(),
       user: userId,
+      subject,
       answers,
       score,
       total,

@@ -41,7 +41,7 @@ router.get('/subjects', authMiddleware, async (req, res) => {
 });
 
 // @route   GET /api/questions
-// @desc    Get 10 random test questions (optionally filtered by ?subject=...) WITHOUT correctIndex
+// @desc    Get 10 random test questions (strictly filtered by ?subject=...) WITHOUT correctIndex
 // @access  Protected
 router.get('/', authMiddleware, async (req, res) => {
   try {
@@ -53,16 +53,10 @@ router.get('/', authMiddleware, async (req, res) => {
         filter = { subject: new RegExp('^' + subject.trim() + '$', 'i') };
       }
 
-      let count = await Question.countDocuments(filter);
-      if (count === 0 && Object.keys(filter).length > 0) {
-        // Fall back to all questions if specific subject has no records
-        filter = {};
-        count = await Question.countDocuments();
-      }
-
+      const count = await Question.countDocuments(filter);
       if (count === 0) {
         return res.status(404).json({
-          message: 'No questions found in the database. Please seed the database first.'
+          message: `No questions found for subject: ${subject || 'All'}.`
         });
       }
 
@@ -85,6 +79,11 @@ router.get('/', authMiddleware, async (req, res) => {
     } else {
       // Local Embedded DB fallback
       const questions = localDB.getQuestions(10, subject);
+      if (questions.length === 0) {
+        return res.status(404).json({
+          message: `No questions found for subject: ${subject || 'All'}.`
+        });
+      }
       return res.status(200).json(questions);
     }
   } catch (error) {

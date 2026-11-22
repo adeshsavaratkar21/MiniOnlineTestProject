@@ -103,7 +103,11 @@ const Test = () => {
               : null
         }));
 
-        const res = await api.post('/api/attempts', { answers: answersPayload });
+        const testSubject = subjectParam || (currentQuestions.length > 0 ? currentQuestions[0].subject : 'General');
+        const res = await api.post('/api/attempts', {
+          answers: answersPayload,
+          subject: testSubject
+        });
 
         // Navigate to result page with the returned evaluation details
         navigate('/result', {
