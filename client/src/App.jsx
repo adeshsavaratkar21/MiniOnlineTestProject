@@ -5,11 +5,12 @@ import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import SubjectSelection from './pages/SubjectSelection';
 import Test from './pages/Test';
 import Result from './pages/Result';
 import History from './pages/History';
 
-// Root redirect handler: / -> /test if authenticated, else /login
+// Root redirect handler: / -> /subjects if authenticated, else /login
 const HomeRedirect = () => {
   const { isAuthenticated, loading } = useAuth();
 
@@ -21,7 +22,7 @@ const HomeRedirect = () => {
     );
   }
 
-  return <Navigate to={isAuthenticated ? '/test' : '/login'} replace />;
+  return <Navigate to={isAuthenticated ? '/subjects' : '/login'} replace />;
 };
 
 function App() {
@@ -39,7 +40,15 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
 
-              {/* Protected Test & History Routes */}
+              {/* Protected Routes */}
+              <Route
+                path="/subjects"
+                element={
+                  <ProtectedRoute>
+                    <SubjectSelection />
+                  </ProtectedRoute>
+                }
+              />
               <Route
                 path="/test"
                 element={

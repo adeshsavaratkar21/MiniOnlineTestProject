@@ -17,7 +17,7 @@ const Signup = () => {
   // Redirect if already logged in
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/test', { replace: true });
+      navigate('/subjects', { replace: true });
     }
   }, [isAuthenticated, navigate]);
 
@@ -68,7 +68,7 @@ const Signup = () => {
     try {
       setSubmitting(true);
       await signup(name.trim(), email.trim(), password, phone.trim());
-      navigate('/test', { replace: true });
+      navigate('/subjects', { replace: true });
     } catch (err) {
       let msg = 'Registration failed. Please check your information and try again.';
       if (err.response?.data?.message) {

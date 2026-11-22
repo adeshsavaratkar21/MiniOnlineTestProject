@@ -18,7 +18,7 @@ const Login = () => {
   // Redirect if already logged in
   useEffect(() => {
     if (isAuthenticated) {
-      const from = location.state?.from?.pathname || '/test';
+      const from = location.state?.from?.pathname || '/subjects';
       navigate(from, { replace: true });
     }
   }, [isAuthenticated, navigate, location]);
@@ -75,7 +75,7 @@ const Login = () => {
         password
       });
 
-      const destination = location.state?.from?.pathname || '/test';
+      const destination = location.state?.from?.pathname || '/subjects';
       navigate(destination, { replace: true });
     } catch (err) {
       let msg = 'Failed to log in. Please check your credentials and try again.';

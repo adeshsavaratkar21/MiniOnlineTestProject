@@ -15,20 +15,20 @@ const Navbar = () => {
     <header className="navbar-header">
       <div className="navbar-container">
         <NavLink to="/" className="navbar-brand">
-          <span className="brand-icon">📝</span>
-          <span className="brand-text">Mini Online Test</span>
+          <span className="brand-icon">🎓</span>
+          <span className="brand-text">CBSE 10th Exam Portal</span>
         </NavLink>
 
         <nav className="navbar-links">
           {isAuthenticated ? (
             <>
               <NavLink
-                to="/test"
+                to="/subjects"
                 className={({ isActive }) =>
                   isActive ? 'nav-link active' : 'nav-link'
                 }
               >
-                Take Test
+                Subjects
               </NavLink>
               <NavLink
                 to="/history"

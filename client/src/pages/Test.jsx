@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import api from '../services/api';
 
 const TOTAL_TIME_SECONDS = 10 * 60; // 10 minutes (600 seconds)
 
 const Test = () => {
+  const [searchParams] = useSearchParams();
+  const subjectParam = searchParams.get('subject') || '';
+
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState({}); // { [questionId]: selectedIndex }
@@ -33,12 +36,14 @@ const Test = () => {
     questionsRef.current = questions;
   }, [questions]);
 
-  // Fetch 10 random questions
+  // Fetch 10 random questions (filtered by subject if provided)
   const fetchQuestions = async () => {
     try {
       setLoading(true);
       setFetchError('');
-      const res = await api.get('/api/questions');
+      const res = await api.get('/api/questions', {
+        params: subjectParam ? { subject: subjectParam } : {}
+      });
       if (Array.isArray(res.data) && res.data.length > 0) {
         setQuestions(res.data);
         questionsRef.current = res.data;
@@ -55,7 +60,7 @@ const Test = () => {
           setVisited({ [res.data[0]._id]: true });
         }
       } else {
-        setFetchError('No questions returned by the server.');
+        setFetchError(`No questions found for ${subjectParam || 'the selected subject'}. Please try another subject.`);
       }
     } catch (err) {
       console.error('Failed to load questions:', err);
@@ -70,7 +75,7 @@ const Test = () => {
 
   useEffect(() => {
     fetchQuestions();
-  }, []);
+  }, [subjectParam]);
 
   // Submit test function
   const submitTest = useCallback(
@@ -277,9 +282,14 @@ const Test = () => {
           <span className="error-icon">⚠️</span>
           <h3>Unable to Start Test</h3>
           <p>{fetchError}</p>
-          <button onClick={fetchQuestions} className="btn btn-primary">
-            Try Again
-          </button>
+          <div className="actions-row">
+            <Link to="/subjects" className="btn btn-outline">
+              ← Select Another Subject
+            </Link>
+            <button onClick={fetchQuestions} className="btn btn-primary">
+              Try Again
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -289,9 +299,16 @@ const Test = () => {
     <div className="cat-exam-portal">
       {/* Top Exam Header Bar */}
       <div className="cat-top-header">
-        <h2 className="cat-exam-title">Online Test - CAT / Examination Portal</h2>
+        <div className="cat-header-left">
+          <Link to="/subjects" className="btn-back-subjects" title="Back to Subjects">
+            ← Change Subject
+          </Link>
+          <h2 className="cat-exam-title">
+            Class 10 CBSE Examination {subjectParam ? `• ${subjectParam}` : ''}
+          </h2>
+        </div>
         <span className="cat-total-badge">
-          Total Questions: {questions.length}
+          Total: {questions.length} Questions (10 Marks)
         </span>
       </div>
 

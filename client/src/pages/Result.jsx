@@ -122,10 +122,10 @@ const Result = () => {
           </p>
           <div className="summary-actions">
             <button
-              onClick={() => navigate('/test')}
+              onClick={() => navigate('/subjects')}
               className="btn btn-primary btn-md"
             >
-              Take Another Test
+              ← Choose Another Subject
             </button>
             <Link to="/history" className="btn btn-outline btn-md">
               View All Attempts
