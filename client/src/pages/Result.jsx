@@ -2,6 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useSearchParams, Link } from 'react-router-dom';
 import api from '../services/api';
 
+const formatTime = (seconds) => {
+  if (typeof seconds !== 'number' || seconds <= 0) return '< 1m';
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  if (mins === 0) return `${secs}s`;
+  if (secs === 0) return `${mins}m ${secs}s`;
+  return `${mins}m ${secs}s`;
+};
+
 const Result = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -96,10 +105,45 @@ const Result = () => {
     );
   }
 
-  const { score, total, details, date, subject } = resultData;
-  const percentage = total > 0 ? Math.round((score / total) * 100) : 0;
+  const { score, total, details, date, subject, timeTaken } = resultData;
+  const percentage =
+    resultData.percentage !== undefined
+      ? resultData.percentage
+      : total > 0
+      ? Math.round((score / total) * 100)
+      : 0;
   const isPassed = percentage >= 60;
   const formattedDate = date ? new Date(date).toLocaleString() : 'Just now';
+
+  // Compute or fallback chapter breakdown
+  let chapterBreakdown = resultData.chapterBreakdown || [];
+  if (
+    (!chapterBreakdown || chapterBreakdown.length === 0) &&
+    Array.isArray(details) &&
+    details.length > 0
+  ) {
+    const map = new Map();
+    details.forEach((item) => {
+      const chap = item.chapter || 'General';
+      if (!map.has(chap)) map.set(chap, { chapter: chap, correct: 0, total: 0 });
+      const stat = map.get(chap);
+      stat.total += 1;
+      if (item.isCorrect) stat.correct += 1;
+    });
+    chapterBreakdown = Array.from(map.values()).map((c) => {
+      const pct = c.total > 0 ? Math.round((c.correct / c.total) * 100) : 0;
+      let status = 'Revise';
+      if (pct >= 75) status = 'Strong';
+      else if (pct >= 50) status = 'Needs practice';
+      return {
+        chapter: c.chapter,
+        correct: c.correct,
+        total: c.total,
+        percentage: pct,
+        status
+      };
+    });
+  }
 
   return (
     <div className="page-container result-page">
@@ -113,8 +157,12 @@ const Result = () => {
       {/* Score Overview Card */}
       <div className="score-summary-card">
         <div className="score-summary-left">
-          <span className="summary-date">Completed on {formattedDate} {subject ? `• ${subject}` : ''}</span>
-          <h2 className="summary-heading">{subject ? `${subject} - Evaluation Summary` : 'Test Evaluation Summary'}</h2>
+          <span className="summary-date">
+            Completed on {formattedDate} {subject ? `• ${subject}` : ''}
+          </span>
+          <h2 className="summary-heading">
+            {subject ? `${subject} - Evaluation Summary` : 'Test Evaluation Summary'}
+          </h2>
           <p className="summary-subtext">
             {isPassed
               ? 'Great job! You demonstrated strong comprehension of the subject material.'
@@ -145,6 +193,76 @@ const Result = () => {
         </div>
       </div>
 
+      {/* Summary Card: Percentage, Time Taken, and Chapter Breakdown */}
+      <div className="chapter-summary-card">
+        <div className="chapter-summary-header">
+          <div className="chapter-header-left">
+            <span className="summary-card-badge">📊 Chapter Analysis</span>
+            <h3 className="chapter-card-title">Chapter Breakdown & Performance</h3>
+            <p className="chapter-card-subtitle">
+              Review your mastery level per chapter to see your strong areas and topics needing revision.
+            </p>
+          </div>
+          <div className="summary-quick-metrics">
+            <div className="quick-metric-box">
+              <span className="metric-label">Percentage</span>
+              <span className="metric-value metric-percentage">{percentage}%</span>
+            </div>
+            <div className="quick-metric-box">
+              <span className="metric-label">Time Taken</span>
+              <span className="metric-value metric-time">⏱️ {formatTime(timeTaken)}</span>
+            </div>
+            <div className="quick-metric-box">
+              <span className="metric-label">Score</span>
+              <span className="metric-value metric-score">{score} / {total}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Chapters Grid / List */}
+        {chapterBreakdown && chapterBreakdown.length > 0 && (
+          <div className="chapter-breakdown-grid">
+            {chapterBreakdown.map((chap, idx) => {
+              const statusClass =
+                chap.status === 'Strong'
+                  ? 'status-strong'
+                  : chap.status === 'Needs practice'
+                  ? 'status-needs-practice'
+                  : 'status-revise';
+
+              const statusIcon =
+                chap.status === 'Strong' ? '🌟' : chap.status === 'Needs practice' ? '⚡' : '🔄';
+
+              return (
+                <div key={idx} className={`chapter-stat-card ${statusClass}`}>
+                  <div className="chapter-stat-header">
+                    <span className="chapter-name">{chap.chapter}</span>
+                    <span className={`chapter-status-badge ${statusClass}`}>
+                      {statusIcon} {chap.status}
+                    </span>
+                  </div>
+
+                  <div className="chapter-stat-numbers">
+                    <span className="chapter-ratio">
+                      {chap.chapter} <strong>{chap.correct}/{chap.total}</strong>
+                    </span>
+                    <span className="chapter-pct-text">{chap.percentage}%</span>
+                  </div>
+
+                  {/* Visual progress bar */}
+                  <div className="chapter-progress-track">
+                    <div
+                      className={`chapter-progress-fill ${statusClass}`}
+                      style={{ width: `${Math.max(6, chap.percentage)}%` }}
+                    ></div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
       {/* Breakdown Header */}
       <div className="review-section-header">
         <h3>Question Breakdown & Answers</h3>
@@ -168,6 +286,9 @@ const Result = () => {
                 <div className="review-card-top">
                   <div className="review-q-number">
                     <span className="badge-q">Q{idx + 1}</span>
+                    {item.chapter && (
+                      <span className="badge-chapter-tag">{item.chapter}</span>
+                    )}
                     <span
                       className={`badge-status ${
                         isCorrect ? 'badge-correct' : 'badge-wrong'

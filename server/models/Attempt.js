@@ -33,6 +33,19 @@ const attemptSchema = new mongoose.Schema(
       type: Number,
       required: [true, 'Total questions count is required']
     },
+    timeTaken: {
+      type: Number,
+      default: 0
+    },
+    chapterBreakdown: [
+      {
+        chapter: { type: String, required: true },
+        correct: { type: Number, required: true },
+        total: { type: Number, required: true },
+        percentage: { type: Number, required: true },
+        status: { type: String, required: true }
+      }
+    ],
     date: {
       type: Date,
       default: Date.now
@@ -42,6 +55,10 @@ const attemptSchema = new mongoose.Schema(
         questionId: {
           type: mongoose.Schema.Types.ObjectId,
           ref: 'Question'
+        },
+        chapter: {
+          type: String,
+          default: 'General'
         },
         question: {
           type: String,

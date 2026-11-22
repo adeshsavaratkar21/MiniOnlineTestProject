@@ -8,16 +8,25 @@ const localDB = require('../utils/localStore');
 
 const isMongooseReady = () => mongoose.connection.readyState === 1;
 
+// Helper to determine chapter status message
+const getChapterStatus = (percentage) => {
+  if (percentage >= 75) return 'Strong';
+  if (percentage >= 50) return 'Needs practice';
+  return 'Revise';
+};
+
 // @route   POST /api/attempts
-// @desc    Submit test answers, evaluate score, save attempt (with subject), and return results
+// @desc    Submit test answers, evaluate score, compute chapter breakdown & time taken, save attempt, and return results
 // @access  Protected
 router.post('/', authMiddleware, async (req, res) => {
   try {
-    const { answers, subject } = req.body;
+    const { answers, subject, timeTaken } = req.body;
 
     if (!Array.isArray(answers) || answers.length === 0) {
       return res.status(400).json({ message: 'Submission must include an array of answers.' });
     }
+
+    const parsedTimeTaken = typeof timeTaken === 'number' && timeTaken >= 0 ? Math.round(timeTaken) : 0;
 
     if (isMongooseReady()) {
       const questionIds = answers
@@ -34,7 +43,7 @@ router.post('/', authMiddleware, async (req, res) => {
         questionMap.set(q._id.toString(), q);
       });
 
-      // Determine subject from input or from first found question
+      // Determine subject
       let resolvedSubject = subject && typeof subject === 'string' && subject.trim() ? subject.trim() : '';
       if (!resolvedSubject && questions.length > 0 && questions[0].subject) {
         resolvedSubject = questions[0].subject;
@@ -46,6 +55,7 @@ router.post('/', authMiddleware, async (req, res) => {
       let score = 0;
       const details = [];
       const sanitizedAnswers = [];
+      const chapterStatsMap = new Map();
 
       for (const ans of answers) {
         const qIdStr = ans.questionId ? ans.questionId.toString() : '';
@@ -65,20 +75,48 @@ router.post('/', authMiddleware, async (req, res) => {
           selectedIndex
         });
 
+        const chap = q.chapter || 'General';
+
         details.push({
           questionId: q._id,
+          chapter: chap,
           question: q.question,
           options: q.options,
           selectedIndex,
           correctIndex: q.correctIndex,
           isCorrect
         });
+
+        // Track chapter accuracy
+        if (!chapterStatsMap.has(chap)) {
+          chapterStatsMap.set(chap, { chapter: chap, correct: 0, total: 0 });
+        }
+        const stat = chapterStatsMap.get(chap);
+        stat.total += 1;
+        if (isCorrect) {
+          stat.correct += 1;
+        }
       }
 
       const total = details.length;
+
+      // Compute chapter breakdown array
+      const chapterBreakdown = Array.from(chapterStatsMap.values()).map((c) => {
+        const pct = c.total > 0 ? Math.round((c.correct / c.total) * 100) : 0;
+        return {
+          chapter: c.chapter,
+          correct: c.correct,
+          total: c.total,
+          percentage: pct,
+          status: getChapterStatus(pct)
+        };
+      });
+
       const attempt = new Attempt({
         user: req.userId,
         subject: resolvedSubject,
+        timeTaken: parsedTimeTaken,
+        chapterBreakdown,
         answers: sanitizedAnswers,
         score,
         total,
@@ -95,6 +133,8 @@ router.post('/', authMiddleware, async (req, res) => {
         score,
         total,
         percentage: total > 0 ? Math.round((score / total) * 100) : 0,
+        timeTaken: savedAttempt.timeTaken,
+        chapterBreakdown: savedAttempt.chapterBreakdown,
         date: savedAttempt.date,
         details
       });
@@ -103,6 +143,7 @@ router.post('/', authMiddleware, async (req, res) => {
       let score = 0;
       const details = [];
       const sanitizedAnswers = [];
+      const chapterStatsMap = new Map();
       let resolvedSubject = subject && typeof subject === 'string' && subject.trim() ? subject.trim() : '';
 
       for (const ans of answers) {
@@ -127,14 +168,26 @@ router.post('/', authMiddleware, async (req, res) => {
           selectedIndex
         });
 
+        const chap = q.chapter || 'General';
+
         details.push({
           questionId: q._id,
+          chapter: chap,
           question: q.question,
           options: q.options,
           selectedIndex,
           correctIndex: q.correctIndex,
           isCorrect
         });
+
+        if (!chapterStatsMap.has(chap)) {
+          chapterStatsMap.set(chap, { chapter: chap, correct: 0, total: 0 });
+        }
+        const stat = chapterStatsMap.get(chap);
+        stat.total += 1;
+        if (isCorrect) {
+          stat.correct += 1;
+        }
       }
 
       if (!resolvedSubject) {
@@ -142,9 +195,23 @@ router.post('/', authMiddleware, async (req, res) => {
       }
 
       const total = details.length;
+
+      const chapterBreakdown = Array.from(chapterStatsMap.values()).map((c) => {
+        const pct = c.total > 0 ? Math.round((c.correct / c.total) * 100) : 0;
+        return {
+          chapter: c.chapter,
+          correct: c.correct,
+          total: c.total,
+          percentage: pct,
+          status: getChapterStatus(pct)
+        };
+      });
+
       const savedAttempt = localDB.createAttempt({
         userId: req.userId,
         subject: resolvedSubject,
+        timeTaken: parsedTimeTaken,
+        chapterBreakdown,
         answers: sanitizedAnswers,
         score,
         total,
@@ -158,6 +225,8 @@ router.post('/', authMiddleware, async (req, res) => {
         score,
         total,
         percentage: total > 0 ? Math.round((score / total) * 100) : 0,
+        timeTaken: savedAttempt.timeTaken,
+        chapterBreakdown: savedAttempt.chapterBreakdown,
         date: savedAttempt.date,
         details
       });
@@ -176,7 +245,7 @@ router.get('/', authMiddleware, async (req, res) => {
     if (isMongooseReady()) {
       const attempts = await Attempt.find({ user: req.userId })
         .sort({ date: -1 })
-        .select('subject score total date details createdAt');
+        .select('subject score total date timeTaken chapterBreakdown details createdAt');
       return res.status(200).json(attempts);
     } else {
       const attempts = localDB.getAttemptsByUser(req.userId);
@@ -211,6 +280,8 @@ router.get('/:id', authMiddleware, async (req, res) => {
         score: attempt.score,
         total: attempt.total,
         percentage: attempt.total > 0 ? Math.round((attempt.score / attempt.total) * 100) : 0,
+        timeTaken: attempt.timeTaken || 0,
+        chapterBreakdown: attempt.chapterBreakdown || [],
         date: attempt.date,
         details: attempt.details
       });
@@ -226,6 +297,8 @@ router.get('/:id', authMiddleware, async (req, res) => {
         score: attempt.score,
         total: attempt.total,
         percentage: attempt.total > 0 ? Math.round((attempt.score / attempt.total) * 100) : 0,
+        timeTaken: attempt.timeTaken || 0,
+        chapterBreakdown: attempt.chapterBreakdown || [],
         date: attempt.date,
         details: attempt.details
       });

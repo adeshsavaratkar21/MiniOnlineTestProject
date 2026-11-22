@@ -1761,3 +1761,407 @@ a:hover {
   color: var(--primary);
   text-decoration: none;
 }
+
+/* ==========================================================================
+   Chapter Performance Breakdown & Summary Card (Result Page)
+   ========================================================================== */
+.chapter-summary-card {
+  background-color: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-top: 24px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.chapter-summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.chapter-header-left {
+  flex: 1;
+  min-width: 260px;
+}
+
+.summary-card-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  background-color: var(--primary-light);
+  color: var(--primary);
+  margin-bottom: 8px;
+}
+
+.chapter-card-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin-bottom: 4px;
+}
+
+.chapter-card-subtitle {
+  font-size: 0.9rem;
+  color: var(--gray-600);
+  line-height: 1.4;
+}
+
+.summary-quick-metrics {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.quick-metric-box {
+  background-color: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  padding: 10px 16px;
+  min-width: 110px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.metric-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.metric-value {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.metric-percentage {
+  color: var(--primary);
+}
+
+.metric-time {
+  color: var(--gray-800);
+}
+
+.metric-score {
+  color: var(--success);
+}
+
+.chapter-breakdown-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.chapter-stat-card {
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.chapter-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.chapter-stat-card.status-strong {
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+
+.chapter-stat-card.status-needs-practice {
+  background-color: #fffbeb;
+  border: 1px solid #fde68a;
+}
+
+.chapter-stat-card.status-revise {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+.chapter-stat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.chapter-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chapter-status-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+
+.chapter-status-badge.status-strong {
+  background-color: #dcfce7;
+  color: #15803d;
+  border: 1px solid #86efac;
+}
+
+.chapter-status-badge.status-needs-practice {
+  background-color: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fcd34d;
+}
+
+.chapter-status-badge.status-revise {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+}
+
+.chapter-stat-numbers {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.88rem;
+  color: var(--gray-700);
+}
+
+.chapter-ratio strong {
+  color: var(--gray-900);
+  font-size: 0.95rem;
+}
+
+.chapter-pct-text {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.chapter-progress-track {
+  height: 6px;
+  background-color: rgba(0, 0, 0, 0.08);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.chapter-progress-fill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.3s ease;
+}
+
+.chapter-progress-fill.status-strong {
+  background-color: var(--success);
+}
+
+.chapter-progress-fill.status-needs-practice {
+  background-color: var(--warning);
+}
+
+.chapter-progress-fill.status-revise {
+  background-color: var(--danger);
+}
+
+.badge-chapter-tag {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background-color: var(--gray-100);
+  color: var(--gray-700);
+  border: 1px solid var(--gray-300);
+}
+
+/* ==========================================================================
+   Analytics Chart & Filter Bar (History Page)
+   ========================================================================== */
+.history-chart-card {
+  background-color: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  padding: 22px 24px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.history-chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.chart-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  background-color: var(--primary-light);
+  color: var(--primary);
+  margin-bottom: 6px;
+}
+
+.chart-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin-bottom: 4px;
+}
+
+.chart-subtitle {
+  font-size: 0.88rem;
+  color: var(--gray-600);
+}
+
+.chart-empty-state {
+  padding: 36px 16px;
+  text-align: center;
+  color: var(--gray-500);
+  font-size: 0.95rem;
+}
+
+.chart-custom-tooltip {
+  background-color: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  box-shadow: var(--shadow-md);
+}
+
+.tooltip-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin-bottom: 2px;
+}
+
+.tooltip-date {
+  font-size: 0.78rem;
+  color: var(--gray-500);
+  margin-bottom: 6px;
+}
+
+.tooltip-divider {
+  height: 1px;
+  background-color: var(--gray-200);
+  margin: 6px 0;
+}
+
+.tooltip-stat {
+  font-size: 0.85rem;
+  color: var(--gray-700);
+  margin: 3px 0;
+}
+
+.history-filter-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  background-color: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.filter-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--gray-700);
+}
+
+.subject-filter-select {
+  padding: 8px 14px;
+  font-size: 0.9rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--gray-300);
+  background-color: #fff;
+  color: var(--gray-800);
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.subject-filter-select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.filter-count-badge {
+  font-size: 0.85rem;
+  color: var(--gray-600);
+}
+
+.filter-count-badge strong {
+  color: var(--gray-900);
+}
+
+.empty-filter-card {
+  background-color: #fff;
+  border: 1px dashed var(--gray-300);
+  border-radius: var(--radius-lg);
+  padding: 36px 20px;
+  text-align: center;
+  margin-top: 12px;
+}
+
+.empty-filter-card h4 {
+  font-size: 1.1rem;
+  margin: 10px 0 6px;
+  color: var(--gray-800);
+}
+
+.empty-filter-card p {
+  font-size: 0.9rem;
+  color: var(--gray-600);
+  margin-bottom: 16px;
+}
+
+.time-taken-badge {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--gray-700);
+  background-color: var(--gray-100);
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--gray-200);
+  white-space: nowrap;
+}
+
+.table-date {
+  font-size: 0.88rem;
+  color: var(--gray-700);
+  white-space: nowrap;
+}

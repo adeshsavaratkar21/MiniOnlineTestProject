@@ -26,6 +26,7 @@ const Test = () => {
   const answersRef = useRef({});
   const isSubmittedRef = useRef(false);
   const questionsRef = useRef([]);
+  const timeLeftRef = useRef(TOTAL_TIME_SECONDS);
 
   // Keep refs in sync with state
   useEffect(() => {
@@ -35,6 +36,10 @@ const Test = () => {
   useEffect(() => {
     questionsRef.current = questions;
   }, [questions]);
+
+  useEffect(() => {
+    timeLeftRef.current = timeLeft;
+  }, [timeLeft]);
 
   // Fetch 10 random questions (filtered by subject if provided)
   const fetchQuestions = async () => {
@@ -104,9 +109,11 @@ const Test = () => {
         }));
 
         const testSubject = subjectParam || (currentQuestions.length > 0 ? currentQuestions[0].subject : 'General');
+        const elapsedSeconds = Math.max(0, TOTAL_TIME_SECONDS - (timeLeftRef.current ?? timeLeft));
         const res = await api.post('/api/attempts', {
           answers: answersPayload,
-          subject: testSubject
+          subject: testSubject,
+          timeTaken: elapsedSeconds
         });
 
         // Navigate to result page with the returned evaluation details
