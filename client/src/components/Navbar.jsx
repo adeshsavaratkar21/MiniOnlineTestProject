@@ -38,9 +38,22 @@ const Navbar = () => {
               >
                 History
               </NavLink>
+              {user?.role === 'admin' && (
+                <NavLink
+                  to="/admin"
+                  className={({ isActive }) =>
+                    isActive ? 'nav-link active nav-link-admin' : 'nav-link nav-link-admin'
+                  }
+                >
+                  ⚙️ Admin
+                </NavLink>
+              )}
               <div className="navbar-user-info">
                 <span className="user-greeting">
                   👤 {user?.name || 'User'}
+                  {user?.role === 'admin' && (
+                    <span className="badge-admin-pill">Admin</span>
+                  )}
                 </span>
                 <button
                   type="button"

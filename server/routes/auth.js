@@ -59,33 +59,37 @@ router.post('/signup', async (req, res) => {
         name: name.trim(),
         email: cleanEmail,
         phone: cleanPhone,
-        password: hashedPassword
+        password: hashedPassword,
+        role: 'student'
       });
       await newUser.save();
       createdUser = {
         id: newUser._id.toString(),
         name: newUser.name,
         email: newUser.email,
-        phone: newUser.phone
+        phone: newUser.phone,
+        role: newUser.role || 'student'
       };
     } else {
       const newUser = localDB.createUser({
         name: name.trim(),
         email: cleanEmail,
         phone: cleanPhone,
-        password: hashedPassword
+        password: hashedPassword,
+        role: 'student'
       });
       createdUser = {
         id: newUser._id.toString(),
         name: newUser.name,
         email: newUser.email,
-        phone: newUser.phone
+        phone: newUser.phone,
+        role: newUser.role || 'student'
       };
     }
 
     const secret = process.env.JWT_SECRET || 'default_jwt_secret_change_me';
     const token = jwt.sign(
-      { userId: createdUser.id, email: createdUser.email },
+      { userId: createdUser.id, email: createdUser.email, role: createdUser.role },
       secret,
       { expiresIn: '7d' }
     );
@@ -197,9 +201,10 @@ router.post('/login', async (req, res) => {
     }
 
     const userIdStr = (user._id || user.id).toString();
+    const userRole = user.role || (cleanEmail === 'admin@example.com' ? 'admin' : 'student');
     const secret = process.env.JWT_SECRET || 'default_jwt_secret_change_me';
     const token = jwt.sign(
-      { userId: userIdStr, email: user.email },
+      { userId: userIdStr, email: user.email, role: userRole },
       secret,
       { expiresIn: '7d' }
     );
@@ -211,7 +216,8 @@ router.post('/login', async (req, res) => {
         id: userIdStr,
         name: user.name,
         email: user.email,
-        phone: user.phone || ''
+        phone: user.phone || '',
+        role: userRole
       }
     });
   } catch (error) {
@@ -234,12 +240,15 @@ router.get('/me', authMiddleware, async (req, res) => {
       return res.status(404).json({ message: 'User not found.' });
     }
 
+    const userRole = user.role || (user.email === 'admin@example.com' ? 'admin' : 'student');
+
     return res.status(200).json({
       user: {
         id: (user._id || user.id).toString(),
         name: user.name,
         email: user.email,
-        phone: user.phone || ''
+        phone: user.phone || '',
+        role: userRole
       }
     });
   } catch (error) {

@@ -440,9 +440,51 @@ const loadDB = () => {
     if (fs.existsSync(DB_FILE)) {
       const data = fs.readFileSync(DB_FILE, 'utf8');
       const parsed = JSON.parse(data);
-      // Ensure questions collection has the full 50 Class 10 CBSE questions with chapters
+      let changed = false;
+
+      // Ensure questions collection has the full 50 Class 10 CBSE questions with chapters & difficulty
       if (!parsed.questions || parsed.questions.length < 50 || !parsed.questions[0].chapter) {
-        parsed.questions = cbse10Questions;
+        parsed.questions = cbse10Questions.map(q => ({
+          ...q,
+          difficulty: q.difficulty || 'medium'
+        }));
+        changed = true;
+      } else {
+        parsed.questions.forEach((q) => {
+          if (!q.difficulty) {
+            q.difficulty = 'medium';
+            changed = true;
+          }
+        });
+      }
+
+      // Ensure users have role and admin user exists
+      if (Array.isArray(parsed.users)) {
+        parsed.users.forEach(u => {
+          if (!u.role) {
+            u.role = u.email === 'admin@example.com' ? 'admin' : 'student';
+            changed = true;
+          }
+        });
+
+        const hasAdmin = parsed.users.some(u => u.role === 'admin' || u.email === 'admin@example.com');
+        if (!hasAdmin) {
+          const hashedAdminPassword = bcrypt.hashSync('admin123', 10);
+          parsed.users.push({
+            _id: '64b000000000000000000101',
+            name: 'Admin User',
+            email: 'admin@example.com',
+            phone: '9999999999',
+            role: 'admin',
+            password: hashedAdminPassword,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          });
+          changed = true;
+        }
+      }
+
+      if (changed) {
         saveDB(parsed);
       }
       return parsed;
@@ -453,6 +495,7 @@ const loadDB = () => {
 
   // Initial seed
   const hashedPassword = bcrypt.hashSync('password123', 10);
+  const hashedAdminPassword = bcrypt.hashSync('admin123', 10);
   const initialData = {
     users: [
       {
@@ -460,12 +503,26 @@ const loadDB = () => {
         name: 'Demo Student',
         email: 'test@example.com',
         phone: '9876543210',
+        role: 'student',
         password: hashedPassword,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      },
+      {
+        _id: '64b000000000000000000101',
+        name: 'Admin User',
+        email: 'admin@example.com',
+        phone: '9999999999',
+        role: 'admin',
+        password: hashedAdminPassword,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       }
     ],
-    questions: cbse10Questions,
+    questions: cbse10Questions.map(q => ({
+      ...q,
+      difficulty: q.difficulty || 'medium'
+    })),
     attempts: []
   };
 
@@ -499,13 +556,14 @@ const localDB = {
     return safeUser;
   },
 
-  createUser: ({ name, email, phone = '', password }) => {
+  createUser: ({ name, email, phone = '', password, role = 'student' }) => {
     const db = loadDB();
     const newUser = {
       _id: generateId(),
       name,
       email: email.toLowerCase(),
       phone: phone.trim(),
+      role: role || 'student',
       password,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
@@ -526,7 +584,37 @@ const localDB = {
     return null;
   },
 
-  // Questions
+  getAllQuestions: (filters = {}) => {
+    const db = loadDB();
+    let list = [...db.questions];
+
+    if (filters.subject && filters.subject !== 'All') {
+      list = list.filter(
+        (q) => q.subject && q.subject.toLowerCase() === filters.subject.toLowerCase()
+      );
+    }
+    if (filters.chapter && filters.chapter !== 'All') {
+      list = list.filter(
+        (q) => q.chapter && q.chapter.toLowerCase() === filters.chapter.toLowerCase()
+      );
+    }
+    if (filters.difficulty && filters.difficulty !== 'All') {
+      list = list.filter(
+        (q) => (q.difficulty || 'medium').toLowerCase() === filters.difficulty.toLowerCase()
+      );
+    }
+    if (filters.search && filters.search.trim()) {
+      const s = filters.search.trim().toLowerCase();
+      list = list.filter(
+        (q) =>
+          (q.question && q.question.toLowerCase().includes(s)) ||
+          (q.chapter && q.chapter.toLowerCase().includes(s)) ||
+          (q.subject && q.subject.toLowerCase().includes(s))
+      );
+    }
+    return list;
+  },
+
   getQuestions: (limit = 10, subject = null) => {
     const db = loadDB();
     let pool = db.questions;
@@ -566,7 +654,14 @@ const localDB = {
     return db.questions.find((q) => q._id === id) || null;
   },
 
-  createQuestion: ({ question, options, correctIndex, subject, chapter = 'General' }) => {
+  createQuestion: ({
+    question,
+    options,
+    correctIndex,
+    subject,
+    chapter = 'General',
+    difficulty = 'medium'
+  }) => {
     const db = loadDB();
     const newQ = {
       _id: generateId(),
@@ -574,11 +669,40 @@ const localDB = {
       options,
       correctIndex,
       subject,
-      chapter
+      chapter,
+      difficulty: difficulty ? difficulty.toLowerCase() : 'medium',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
-    db.questions.push(newQ);
+    db.questions.unshift(newQ);
     saveDB(db);
     return newQ;
+  },
+
+  updateQuestion: (id, updates) => {
+    const db = loadDB();
+    const idx = db.questions.findIndex((q) => q._id === id);
+    if (idx !== -1) {
+      db.questions[idx] = {
+        ...db.questions[idx],
+        ...updates,
+        updatedAt: new Date().toISOString()
+      };
+      saveDB(db);
+      return db.questions[idx];
+    }
+    return null;
+  },
+
+  deleteQuestion: (id) => {
+    const db = loadDB();
+    const prevLen = db.questions.length;
+    db.questions = db.questions.filter((q) => q._id !== id);
+    if (db.questions.length !== prevLen) {
+      saveDB(db);
+      return true;
+    }
+    return false;
   },
 
   // Attempts

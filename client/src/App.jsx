@@ -9,6 +9,8 @@ import SubjectSelection from './pages/SubjectSelection';
 import Test from './pages/Test';
 import Result from './pages/Result';
 import History from './pages/History';
+import Admin from './pages/Admin';
+import AdminRoute from './components/AdminRoute';
 
 // Root redirect handler: / -> /subjects if authenticated, else /login
 const HomeRedirect = () => {
@@ -71,6 +73,14 @@ function App() {
                   <ProtectedRoute>
                     <History />
                   </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  <AdminRoute>
+                    <Admin />
+                  </AdminRoute>
                 }
               />
 

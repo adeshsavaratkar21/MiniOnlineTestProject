@@ -412,9 +412,23 @@ const seedDB = async () => {
       name: 'Demo Student',
       email: 'test@example.com',
       phone: '9876543210',
+      role: 'student',
       password: hashedPassword
     });
-    console.log('Created demo user: test@example.com / password123');
+    console.log('Created demo user: test@example.com / password123 (role: student)');
+
+    // Seed default admin user
+    console.log('Seeding default administrator user...');
+    await User.deleteMany({ email: 'admin@example.com' });
+    const hashedAdminPassword = await bcrypt.hash('admin123', 10);
+    await User.create({
+      name: 'Admin User',
+      email: 'admin@example.com',
+      phone: '9999999999',
+      role: 'admin',
+      password: hashedAdminPassword
+    });
+    console.log('Created admin user: admin@example.com / admin123 (role: admin)');
 
     await mongoose.disconnect();
     console.log('MongoDB connection closed. Seeding completed successfully.');
